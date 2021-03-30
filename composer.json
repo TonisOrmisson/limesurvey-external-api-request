@@ -1,0 +1,40 @@
+{
+    "name": "tonisormisson/limesurvey-url-templates",
+    "description": "LimeSurvey plugin to enable loading templates via URL paramaters",
+    "keywords": ["limesurvey","templates"],
+    "homepage": "https://github.com/TonisOrmisson/limesurvey-url-templates",
+    "type": "limesurvey-plugin",
+    "license": "GPL-2.0",
+    "support": {
+        "issues": "https://github.com/TonisOrmisson/limesurvey-url-templates/issues",
+        "source": "https://github.com/TonisOrmisson/limesurvey-url-templates"
+    },
+    "authors": [
+        {
+            "name": "Tõnis Ormisson",
+            "email": "tonis@andmemasin.eu",
+            "homepage": "https://andmemasin.eu",
+            "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "ext-json": "*",
+        "ext-curl": "*"
+    },
+    "require-dev": {
+        "limesurvey/limesurvey": "~3.0.1"
+    },
+
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}

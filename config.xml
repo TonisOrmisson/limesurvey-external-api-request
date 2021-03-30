@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <metadata>
+        <name>ExternalApiRequest</name>
+        <type>plugin</type>
+        <creationDate>2021-03-30</creationDate>
+        <last_update>2021-03-30</last_update>
+        <author>Tõnis Ormisson</author>
+        <authorUrl>https://andmemasin.eu</authorUrl>
+        <license>GNU General Public License version 2 or later</license>
+        <version>1.0.0</version>
+        <description><![CDATA[Core: Make external API request and inject the result to every interview page.]]></description>
+    </metadata>
+
+    <compatibility>
+        <version>4.0</version>
+        <version>3.0</version>
+    </compatibility>
+</config>
