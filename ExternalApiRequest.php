@@ -188,12 +188,6 @@ class ExternalApiRequest extends PluginBase {
     public function beforeSurveySettings()
     {
         $event = $this->event;
-
-        // set defaults
-        $paramName = ($this->get('paramName', 'Survey', $event->get('survey')) ? $this->get('paramName', 'Survey', $event->get('survey')) : 'username');
-        $requestUrl = ($this->get('requestUrl', 'Survey', $event->get('survey')) ? $this->get('requestUrl', 'Survey', $event->get('survey')) : 'https://andmemasin.eu/api');
-        $authenticationBearer = ($this->get('authenticationBearer', 'Survey', $event->get('survey')) ? $this->get('authenticationBearer', 'Survey', $event->get('survey')) : 'my-long-token');
-
         $globalSettings = $this->getPluginSettings(true);
 
         $surveySettings = [];
