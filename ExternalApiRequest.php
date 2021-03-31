@@ -53,7 +53,6 @@ class ExternalApiRequest extends PluginBase {
 
     public function beforeSurveyPage()
     {
-
         $data = $this->makeRequest();
         Yii::app()->params['surveyThemeData'] = $data;
     }
@@ -61,15 +60,15 @@ class ExternalApiRequest extends PluginBase {
     private function makeRequest()
     {
         $this->loadSurvey();
+        $this->loadSurveySettings();
 
         $userName = $this->userName();
-
+        $surveyId = $this->survey->primaryKey;
         if (empty($this->survey) or empty($userName)) {
             return null;
         }
 
 
-        $surveyId = $this->survey->primaryKey;
         $paramName = trim($this->get("paramName", 'Survey', $surveyId));
         $requestUrl = $this->get("requestUrl", 'Survey', $surveyId);
         $authenticationBearer = $this->get("authenticationBearer", 'Survey', $surveyId);
@@ -116,6 +115,9 @@ class ExternalApiRequest extends PluginBase {
         /** @var CHttpSession $session */
         $session = Yii::app()->session;
         $key = $this->sessionKey()."::username";
+        if(isset($_GET['newtest']) and isset($_GET['newtest']) == "Y") {
+            unset($session[$key]);
+        }
         if(isset($_GET[$paramName]) && !empty($_GET[$paramName])) {
             $userName = trim(strval($_GET[$paramName]));
             $session[$key] =  $userName;
@@ -187,6 +189,10 @@ class ExternalApiRequest extends PluginBase {
      */
     public function beforeSurveySettings()
     {
+        $this->loadSurveySettings();
+    }
+
+    private function loadSurveySettings(){
         $event = $this->event;
         $globalSettings = $this->getPluginSettings(true);
 
@@ -203,16 +209,38 @@ class ExternalApiRequest extends PluginBase {
             'name' => get_class($this),
             'settings' => $surveySettings,
         ]);
+
+        // always get and save defaults if they are missing
+        $paramName = trim($this->get("paramName", 'Survey', $this->survey->primaryKey));
+        if(empty($paramName)) {
+            $this->loadDefaultSettings();
+        }
     }
 
 
     public function newSurveySettings()
     {
         $event = $this->event;
-        foreach ($event->get('settings') as $name => $value)
-        {
+
+        foreach ($event->get('settings') as $name => $value) {
             $this->set($name, $value, 'Survey', $event->get('survey'));
         }
+    }
+
+    private function loadDefaultSettings() {
+        $event = $this->event;
+        $surveyId = $this->survey->primaryKey;
+        $settings = [];
+        $globalSettings = $this->getPluginSettings(true);
+
+        foreach ($globalSettings as $key => $setting) {
+            $settings[$key] = $setting['current'];
+        }
+
+        $event->set('settings', $settings);
+        $event->set('survey', $surveyId);
+        $this->newSurveySettings();
+
     }
 
 }
