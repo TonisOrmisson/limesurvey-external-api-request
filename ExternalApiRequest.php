@@ -62,9 +62,9 @@ class ExternalApiRequest extends PluginBase {
         $this->loadSurvey();
         $this->loadSurveySettings();
 
-        $userName = $this->userName();
+        $paramValue = $this->paramValue();
         $surveyId = $this->survey->primaryKey;
-        if (empty($this->survey) or empty($userName)) {
+        if (empty($this->survey) or empty($paramValue)) {
             return null;
         }
 
@@ -75,7 +75,7 @@ class ExternalApiRequest extends PluginBase {
 
         $authorization = "Authorization: Bearer " . $authenticationBearer;
         $postRequest = [
-            $paramName => $userName
+            $paramName => $paramValue
         ];
 
         // Create curl resource
@@ -103,7 +103,7 @@ class ExternalApiRequest extends PluginBase {
     /**
      * @return string|null
      */
-    private function userName()
+    private function paramValue()
     {
         $surveyId = $this->survey->primaryKey;
         $paramName = trim($this->get("paramName", 'Survey', $surveyId));
@@ -114,13 +114,13 @@ class ExternalApiRequest extends PluginBase {
 
         /** @var CHttpSession $session */
         $session = Yii::app()->session;
-        $key = $this->sessionKey()."::username";
+        $key = $this->sessionKey()."::paramValue";
         if(isset($_GET['newtest']) and isset($_GET['newtest']) == "Y") {
             unset($session[$key]);
         }
         if(isset($_GET[$paramName]) && !empty($_GET[$paramName])) {
-            $userName = trim(strval($_GET[$paramName]));
-            $session[$key] =  $userName;
+            $value = trim(strval($_GET[$paramName]));
+            $session[$key] =  $value;
         }
         if (!isset($session[$key])) {
             return null;
