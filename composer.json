@@ -1,13 +1,13 @@
 {
-    "name": "tonisormisson/limesurvey-url-templates",
-    "description": "LimeSurvey plugin to enable loading templates via URL paramaters",
-    "keywords": ["limesurvey","templates"],
-    "homepage": "https://github.com/TonisOrmisson/limesurvey-url-templates",
+    "name": "tonisormisson/limesurvey-external-api-request",
+    "description": "LimeSurvey plugin to make API requests to external systems",
+    "keywords": ["limesurvey","API"],
+    "homepage": "https://github.com/TonisOrmisson/limesurvey-external-api-request",
     "type": "limesurvey-plugin",
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-or-later",
     "support": {
-        "issues": "https://github.com/TonisOrmisson/limesurvey-url-templates/issues",
-        "source": "https://github.com/TonisOrmisson/limesurvey-url-templates"
+        "issues": "https://github.com/TonisOrmisson/limesurvey-external-api-request/issues",
+        "source": "https://github.com/TonisOrmisson/limesurvey-external-api-request"
     },
     "authors": [
         {
