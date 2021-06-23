@@ -30,6 +30,6 @@ The plugin is disabled by default for surveys.
 ## 5 Use in Twig
 
 Api request will be made on the plugin event 'beforeSurveyPage' and the API request result is 
-injected into `Yii::app()->params['surveyThemeData']`
+injected into `LSYII_Application->configuration['ExternalApiPluginData']`
 
-The result may be used in twig survey templates via `{{ App.params.surveyThemeData }}`
+The result may be used in twig survey templates via `{{ getConfig("ExternalApiPluginData") }}`

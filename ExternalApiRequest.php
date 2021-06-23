@@ -53,8 +53,10 @@ class ExternalApiRequest extends PluginBase {
 
     public function beforeSurveyPage()
     {
+        /** @var LSYii_Application $app */
+        $app = Yii::app();
         $data = $this->makeRequest();
-        Yii::app()->params['surveyThemeData'] = $data;
+        $app->setConfig("ExternalApiPluginData", $data);
     }
 
     private function makeRequest()
