@@ -61,12 +61,15 @@ class ExternalApiRequest extends PluginBase {
 
     private function makeRequest()
     {
+        Yii::log("Trying to make request", "info", __METHOD__);
         $this->loadSurvey();
         $this->loadSurveySettings();
 
         $paramValue = $this->paramValue();
         $surveyId = $this->survey->primaryKey;
         if (empty($this->survey) or empty($paramValue)) {
+            Yii::log("Missing survey as well as paramValue, nothing to do, ending ...", "info", __METHOD__);
+
             return null;
         }
 
@@ -81,6 +84,7 @@ class ExternalApiRequest extends PluginBase {
         ];
 
         // Create curl resource
+        Yii::log("Making curl request", "info", __METHOD__);
         $ch = curl_init();
 
         // Set URL
@@ -95,6 +99,9 @@ class ExternalApiRequest extends PluginBase {
 
         // $output contains output as a string
         $output = curl_exec($ch);
+
+        Yii::log("Closing curl request", "info", __METHOD__);
+        Yii::log("request result:" . $output, "info", __METHOD__);
 
         // Close curl resource
         curl_close($ch);
@@ -160,6 +167,8 @@ class ExternalApiRequest extends PluginBase {
 
     private function loadSurvey()
     {
+        Yii::log("Loading survey", "info", __METHOD__);
+
         $event = $this->event;
         $surveyId = $event->get('surveyid');
 
@@ -175,8 +184,10 @@ class ExternalApiRequest extends PluginBase {
         $surveyArray = $query->queryRow();
 
         if (empty($surveyArray)) {
+            Yii::log("Got empty survey", "info", __METHOD__);
             return;
         }
+        Yii::log("Cretaing a survey from array", "info", __METHOD__);
         $this->survey = (new Survey());
         $this->survey->attributes = $surveyArray;
 
@@ -195,6 +206,8 @@ class ExternalApiRequest extends PluginBase {
     }
 
     private function loadSurveySettings(){
+        Yii::log("Trying to load survey settings from global", "info", __METHOD__);
+
         $event = $this->event;
         $globalSettings = $this->getPluginSettings(true);
 
@@ -207,6 +220,7 @@ class ExternalApiRequest extends PluginBase {
             }
 
         }
+        Yii::log("Setting survey settings", "info", __METHOD__);
         $event->set("surveysettings.{$this->id}", [
             'name' => get_class($this),
             'settings' => $surveySettings,
@@ -214,7 +228,9 @@ class ExternalApiRequest extends PluginBase {
 
         // always get and save defaults if they are missing
         $paramName = trim($this->get("paramName", 'Survey', $this->survey->primaryKey));
+        Yii::log("Using paramName '$paramName' for request", "info", __METHOD__);
         if(empty($paramName)) {
+            Yii::log("No param name loading defaults", "info", __METHOD__);
             $this->loadDefaultSettings();
         }
     }
@@ -233,6 +249,7 @@ class ExternalApiRequest extends PluginBase {
         $event = $this->event;
         $surveyId = $this->survey->primaryKey;
         $settings = [];
+        Yii::log("Loading settings from default", "info", __METHOD__);
         $globalSettings = $this->getPluginSettings(true);
 
         foreach ($globalSettings as $key => $setting) {
