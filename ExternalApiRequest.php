@@ -187,7 +187,7 @@ class ExternalApiRequest extends PluginBase {
             Yii::log("Got empty survey", "info", __METHOD__);
             return;
         }
-        Yii::log("Cretaing a survey from array", "info", __METHOD__);
+        Yii::log("Creating a survey from array", "info", __METHOD__);
         $this->survey = (new Survey());
         $this->survey->attributes = $surveyArray;
 
@@ -198,7 +198,7 @@ class ExternalApiRequest extends PluginBase {
     /**
      * This event is fired by the administration panel to gather extra settings
      * available for a survey.
-     * The plugin should return setting meta data.
+     * The plugin should return setting meta-data.
      */
     public function beforeSurveySettings()
     {
