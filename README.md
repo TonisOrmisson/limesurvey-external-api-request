@@ -10,7 +10,7 @@ A LimeSurvey plugin to make API requests to external systems and inject the resu
 
 Change to LS plugins folder:
 ```
-$ cd /your/limesurvey/path/plugins
+$ cd upload/plugins
 ```
 Use git to clone into folder `ExternalApiRequest`:
 ```

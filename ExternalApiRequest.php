@@ -2,7 +2,6 @@
 
 /**
  * Class ExternalApiRequest -
- * URL parameter
  * @author Tõnis Ormisson <tonis@andmemasin.eu>
  */
 class ExternalApiRequest extends PluginBase {
@@ -35,7 +34,7 @@ class ExternalApiRequest extends PluginBase {
                 'type' => 'string',
                 'label' => 'an input URL parameter to be injected to API request',
                 'default' => 'username',
-            ]
+            ],
     ];
 
     const SESSION_KEY = "ExternalApiRequest";
@@ -43,7 +42,6 @@ class ExternalApiRequest extends PluginBase {
 
     /* Register plugin on events*/
     public function init() {
-        $this->subscribe('afterFindSurvey');
         $this->subscribe('beforeSurveySettings');
         $this->subscribe('newSurveySettings');
         $this->subscribe('beforeSurveyPage');
@@ -53,6 +51,8 @@ class ExternalApiRequest extends PluginBase {
 
     public function beforeSurveyPage()
     {
+        Yii::log("beforeSurveyPage", "trace",  $this->logCategory());
+        $this->loadSurvey();
         /** @var LSYii_Application $app */
         $app = Yii::app();
         $data = $this->makeRequest();
@@ -61,17 +61,22 @@ class ExternalApiRequest extends PluginBase {
 
     private function makeRequest()
     {
-        Yii::log("Trying to make request", "info", __METHOD__);
-        $this->loadSurvey();
+        Yii::log("Trying to make request", "trace",  $this->logCategory());
+        if (empty($this->survey)) {
+            Yii::log("Missing survey, ending ...", "info",  $this->logCategory());
+            return null;
+        }
+
         $this->loadSurveySettings();
 
         $paramValue = $this->paramValue();
-        $surveyId = $this->survey->primaryKey;
-        if (empty($this->survey) or empty($paramValue)) {
-            Yii::log("Missing survey as well as paramValue, nothing to do, ending ...", "info", __METHOD__);
-
+        if (empty($paramValue)) {
+            Yii::log("Missing paramValue, nothing to do, ending ...", "info",  $this->logCategory());
             return null;
         }
+        $surveyId = $this->survey->primaryKey;
+
+        Yii::log("####". serialize($paramValue), "trace",  $this->logCategory());
 
 
         $paramName = trim($this->get("paramName", 'Survey', $surveyId));
@@ -80,11 +85,11 @@ class ExternalApiRequest extends PluginBase {
 
         $authorization = "Authorization: Bearer " . $authenticationBearer;
         $postRequest = [
-            $paramName => $paramValue
+            $paramName => $paramValue,
         ];
 
         // Create curl resource
-        Yii::log("Making curl request", "info", __METHOD__);
+        Yii::log("Making curl request to $requestUrl", "trace",  $this->logCategory());
         $ch = curl_init();
 
         // Set URL
@@ -92,7 +97,7 @@ class ExternalApiRequest extends PluginBase {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            $authorization
+            $authorization,
         ]);
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postRequest));
@@ -100,9 +105,8 @@ class ExternalApiRequest extends PluginBase {
         // $output contains output as a string
         $output = curl_exec($ch);
 
-        Yii::log("Closing curl request", "info", __METHOD__);
-        Yii::log("request result:" . $output, "info", __METHOD__);
-
+        Yii::log("Closing curl request", "trace",  $this->logCategory());
+        Yii::log("request result:" . $output, "trace",  $this->logCategory());
         // Close curl resource
         curl_close($ch);
 
@@ -119,7 +123,7 @@ class ExternalApiRequest extends PluginBase {
         if (empty($paramName)) {
             return null;
         }
-
+        Yii::log("looking value for $paramName", "trace",  $this->logCategory());
 
         /** @var CHttpSession $session */
         $session = Yii::app()->session;
@@ -140,25 +144,6 @@ class ExternalApiRequest extends PluginBase {
     }
 
 
-    public function afterFindSurvey() {
-        $this->loadSurvey();
-        if (empty($this->survey)) {
-            return;
-        }
-        $surveyId = $this->survey->primaryKey;
-
-        $pluginEnabled = boolval($this->get("enabled", 'Survey', $surveyId));
-        if (!$pluginEnabled) {
-            return;
-        }
-
-        $paramName = $this->get("paramName", 'Survey', $surveyId);
-        if (empty($paramName)) {
-            return;
-        }
-
-
-    }
 
     private function sessionKey()
     {
@@ -167,10 +152,22 @@ class ExternalApiRequest extends PluginBase {
 
     private function loadSurvey()
     {
-        Yii::log("Loading survey", "info", __METHOD__);
+        Yii::log("Loading survey", "trace",  $this->logCategory());
 
-        $event = $this->event;
-        $surveyId = $event->get('surveyid');
+        $event = $this->event; // beforeSurveyPage;
+        $possibleSurveyIdParameterNames = ['surveyId', 'survey', 'surveyid'];
+
+        foreach ($possibleSurveyIdParameterNames as $possibleSurveyIdParameterName) {
+            $surveyId = $event->get($possibleSurveyIdParameterName);
+            if(!empty($surveyId)) {
+                Yii::log("Found surveyId:" . $surveyId, "trace",  $this->logCategory());
+                break;
+            }
+        }
+        if(empty($surveyId)) {
+            Yii::log("SurveyId not found:" . $surveyId, "trace",  $this->logCategory());
+            return;
+        }
 
         /**
          * NB need to do it without find() since the code at hand is itself run
@@ -184,10 +181,10 @@ class ExternalApiRequest extends PluginBase {
         $surveyArray = $query->queryRow();
 
         if (empty($surveyArray)) {
-            Yii::log("Got empty survey", "info", __METHOD__);
+            Yii::log("Got empty survey:$surveyId", "info",  $this->logCategory());
             return;
         }
-        Yii::log("Creating a survey from array", "info", __METHOD__);
+        Yii::log("Creating a survey from array", "trace",  $this->logCategory());
         $this->survey = (new Survey());
         $this->survey->attributes = $surveyArray;
 
@@ -202,37 +199,46 @@ class ExternalApiRequest extends PluginBase {
      */
     public function beforeSurveySettings()
     {
+        Yii::log("Survey settings page load beforeSurveySettings", "trace",  $this->logCategory());
+        $this->loadSurvey();
         $this->loadSurveySettings();
     }
 
     private function loadSurveySettings(){
-        Yii::log("Trying to load survey settings from global", "info", __METHOD__);
+        Yii::log("Trying to load survey settings from global", "trace",  $this->logCategory());
+        if(empty($this->survey)) {
+            Yii::log("Survey not set, skipping", "trace",  $this->logCategory());
+            return;
+
+        }
 
         $event = $this->event;
         $globalSettings = $this->getPluginSettings(true);
 
         $surveySettings = [];
         foreach ($globalSettings as $key => $setting) {
-            $currentSurveyValue = $this->get($key, 'Survey', $event->get('survey'));
+            $currentSurveyValue = $this->get($key, 'Survey', $this->survey->primaryKey);
             $surveySettings[$key] = $setting;
             if(!empty($currentSurveyValue)) {
                 $surveySettings[$key]['current'] = $currentSurveyValue;
             }
-
         }
-        Yii::log("Setting survey settings", "info", __METHOD__);
-        $event->set("surveysettings.{$this->id}", [
+
+        Yii::log("Setting survey settings", "trace",  $this->logCategory());
+        $event->set("surveysettings.{$this->survey->primaryKey}", [
             'name' => get_class($this),
             'settings' => $surveySettings,
         ]);
 
         // always get and save defaults if they are missing
         $paramName = trim($this->get("paramName", 'Survey', $this->survey->primaryKey));
-        Yii::log("Using paramName '$paramName' for request", "info", __METHOD__);
+        Yii::log("Using paramName '$paramName' for request", "trace",  $this->logCategory());
         if(empty($paramName)) {
-            Yii::log("No param name loading defaults", "info", __METHOD__);
+            Yii::log("No param name loading defaults", "trace",  $this->logCategory());
             $this->loadDefaultSettings();
         }
+        Yii::log("Done loading survey settings", "info",  $this->logCategory());
+
     }
 
 
@@ -249,7 +255,7 @@ class ExternalApiRequest extends PluginBase {
         $event = $this->event;
         $surveyId = $this->survey->primaryKey;
         $settings = [];
-        Yii::log("Loading settings from default", "info", __METHOD__);
+        Yii::log("Loading settings from default", "trace", $this->logCategory());
         $globalSettings = $this->getPluginSettings(true);
 
         foreach ($globalSettings as $key => $setting) {
@@ -260,6 +266,11 @@ class ExternalApiRequest extends PluginBase {
         $event->set('survey', $surveyId);
         $this->newSurveySettings();
 
+    }
+
+    private function logCategory()
+    {
+        return "andmemasin\\ExternalApiRequest";
     }
 
 }
